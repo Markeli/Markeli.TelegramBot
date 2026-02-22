@@ -1,6 +1,6 @@
 using Markeli.TelegramBot.Commands.States;
 
-namespace Markeli.TelegramBot.Core;
+namespace Markeli.TelegramBot;
 
 /// <summary>
 /// Result of command processing.

@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
-namespace Markeli.TelegramBot.Core;
+namespace Markeli.TelegramBot;
 
 /// <summary>
 /// Extension methods for Telegram bot operations.

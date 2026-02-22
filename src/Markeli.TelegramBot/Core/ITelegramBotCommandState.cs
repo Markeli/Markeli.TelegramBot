@@ -1,4 +1,4 @@
-namespace Markeli.TelegramBot.Core;
+namespace Markeli.TelegramBot;
 
 /// <summary>
 /// State of the command execution for specified chat.

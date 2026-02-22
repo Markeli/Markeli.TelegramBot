@@ -1,4 +1,4 @@
-namespace Markeli.TelegramBot.Core;
+namespace Markeli.TelegramBot;
 
 /// <summary>
 /// Base implementation for command states.

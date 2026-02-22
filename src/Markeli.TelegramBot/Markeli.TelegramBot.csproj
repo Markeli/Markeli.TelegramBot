@@ -14,10 +14,22 @@
 		<PackageProjectUrl>https://github.com/Markeli/Markeli.TelegramBot</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/Markeli/Markeli.TelegramBot</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageTags>telegram;bot;commands;state-management</PackageTags>
+		<PackageTags>telegram;bot;commands;state-management;dotnet;csharp;telegram-bot-api</PackageTags>
+		<Copyright>Copyright (c) 2026 Maxim Markelow</Copyright>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageReleaseNotes>See CHANGELOG.md</PackageReleaseNotes>
 
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<NoWarn>CS1591</NoWarn>
+
+		<!-- SourceLink -->
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+		<!-- Deterministic builds for CI -->
+		<ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -25,7 +37,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Include="../../README.md" Pack="true" PackagePath="/" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Telegram.Bot" Version="19.0.0" />
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
 		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.4" />

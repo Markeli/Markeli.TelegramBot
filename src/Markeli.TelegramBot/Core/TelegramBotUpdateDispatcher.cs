@@ -6,7 +6,7 @@ using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
-namespace Markeli.TelegramBot.Core;
+namespace Markeli.TelegramBot;
 
 /// <summary>
 /// Dispatches Telegram updates for parallel processing.

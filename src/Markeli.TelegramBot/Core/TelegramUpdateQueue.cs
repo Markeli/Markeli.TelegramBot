@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Telegram.Bot.Types;
 using IOFile = System.IO.File;
 
-namespace Markeli.TelegramBot.Core;
+namespace Markeli.TelegramBot;
 
 /// <summary>
 /// Thread-safe queue for Telegram updates with persistence support.

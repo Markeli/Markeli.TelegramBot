@@ -1,4 +1,4 @@
-namespace Markeli.TelegramBot.Core;
+namespace Markeli.TelegramBot;
 
 /// <summary>
 /// Container for a cached command handler and its state.

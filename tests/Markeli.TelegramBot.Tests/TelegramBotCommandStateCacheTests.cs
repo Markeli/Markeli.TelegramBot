@@ -1,5 +1,4 @@
 using Markeli.TelegramBot.Commands.States;
-using Markeli.TelegramBot.Core;
 using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using Xunit;

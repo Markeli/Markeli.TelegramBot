@@ -39,14 +39,32 @@ Task("Test")
 		var settings = new DotNetCoreTestSettings
 		{
 			Configuration = configuration,
-			NoBuild = true
+			NoBuild = true,
+			ArgumentCustomization = args => args
+				.Append("/p:CollectCoverage=true")
+				.Append("/p:CoverletOutputFormat=cobertura")
+				.Append($"/p:CoverletOutput={MakeAbsolute(artifactsDir)}/coverage.cobertura.xml")
 		};
 
 		DotNetCoreTest(solutionPath, settings);
 	});
 
-Task("Pack")
+Task("Coverage-Report")
 	.IsDependentOn("Test")
+	.Does(() =>
+	{
+		StartProcess("dotnet", new ProcessSettings
+		{
+			Arguments = new ProcessArgumentBuilder()
+				.Append("tool").Append("run").Append("reportgenerator")
+				.Append($"-reports:{MakeAbsolute(artifactsDir)}/coverage.cobertura.xml")
+				.Append($"-targetdir:{MakeAbsolute(artifactsDir)}/coverage-report")
+				.Append("-reporttypes:Html;TextSummary")
+		});
+	});
+
+Task("Pack")
+	.IsDependentOn("Coverage-Report")
 	.Does(() =>
 	{
 		var settings = new DotNetCorePackSettings

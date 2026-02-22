@@ -1,5 +1,3 @@
-using Markeli.TelegramBot.Core;
-
 namespace Markeli.TelegramBot.Commands.States;
 
 /// <summary>

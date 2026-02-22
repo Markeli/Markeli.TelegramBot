@@ -1,9 +1,8 @@
-using Markeli.TelegramBot.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Telegram.Bot;
 
-namespace Markeli.TelegramBot.DependencyInjection;
+namespace Markeli.TelegramBot;
 
 /// <summary>
 /// Extension methods for registering Telegram bot infrastructure services.
