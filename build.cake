@@ -15,7 +15,7 @@ var solutionPath = "./Markeli.TelegramBot.sln";
 Task("Clean")
 	.Does(() =>
 	{
-		DotNetCoreClean(solutionPath);
+		DotNetClean(solutionPath);
 		CleanDirectory(artifactsDir);
 		EnsureDirectoryExists(artifactsDir);
 	});
@@ -24,19 +24,19 @@ Task("Build")
 	.IsDependentOn("Clean")
 	.Does(() =>
 	{
-		var settings = new DotNetCoreBuildSettings
+		var settings = new DotNetBuildSettings
 		{
 			Configuration = configuration
 		};
 
-		DotNetCoreBuild(solutionPath, settings);
+		DotNetBuild(solutionPath, settings);
 	});
 
 Task("Test")
 	.IsDependentOn("Build")
 	.Does(() =>
 	{
-		var settings = new DotNetCoreTestSettings
+		var settings = new DotNetTestSettings
 		{
 			Configuration = configuration,
 			NoBuild = true,
@@ -46,7 +46,7 @@ Task("Test")
 				.Append($"/p:CoverletOutput={MakeAbsolute(artifactsDir)}/coverage.cobertura.xml")
 		};
 
-		DotNetCoreTest(solutionPath, settings);
+		DotNetTest(solutionPath, settings);
 	});
 
 Task("Coverage-Report")
@@ -67,14 +67,14 @@ Task("Pack")
 	.IsDependentOn("Coverage-Report")
 	.Does(() =>
 	{
-		var settings = new DotNetCorePackSettings
+		var settings = new DotNetPackSettings
 		{
 			Configuration = configuration,
 			OutputDirectory = artifactsDir,
 			NoBuild = true
 		};
 
-		DotNetCorePack("./src/Markeli.TelegramBot/Markeli.TelegramBot.csproj", settings);
+		DotNetPack("./src/Markeli.TelegramBot/Markeli.TelegramBot.csproj", settings);
 	});
 
 Task("Push")
@@ -88,7 +88,7 @@ Task("Push")
 		var packages = GetFiles($"{artifactsDir}/*.nupkg");
 		foreach (var package in packages)
 		{
-			DotNetCoreNuGetPush(package.FullPath, new DotNetCoreNuGetPushSettings
+			DotNetNuGetPush(package.FullPath, new DotNetNuGetPushSettings
 			{
 				Source = "https://api.nuget.org/v3/index.json",
 				ApiKey = apiKey

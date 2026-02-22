@@ -54,7 +54,7 @@ public class TelegramBotOptions
 	/// Validates the options and throws if invalid.
 	/// </summary>
 	/// <exception cref="InvalidOperationException">Thrown when validation fails.</exception>
-	internal void AssertValid()
+	public void AssertValid()
 	{
 		var errors = Validate();
 		if (errors.Count > 0)

@@ -1,0 +1,17 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '6.0.x'
+      - run: dotnet tool restore
+      - run: dotnet cake --target=Push
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
