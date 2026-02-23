@@ -172,7 +172,7 @@ public class TelegramUpdateProcessor
 		{
 			await _botClient.SendTextMessageAsync(
 				chatId,
-				"Hi! To use this bot, please, send a verification password.",
+				$"Hi! Your chat ID is `{chatId}`. To use this bot, please, send a verification password.",
 				cancellationToken: cancellationToken);
 			_logger.LogInformation(
 				"Chat ChatId={ChatId} added to waiting list for authentication",

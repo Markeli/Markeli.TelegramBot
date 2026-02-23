@@ -104,7 +104,7 @@ All settings are passed via `TelegramBotOptions`:
 Chats listed in `AllowedChatIds` are authorized automatically. When an unknown chat sends a message:
 
 1. The bot replies with *"Hi! To use this bot, please, send a verification password."*
-2. If the user sends the correct `Password`, the chat is added to the allowed set for the lifetime of the process.
+2. If the user sends the correct `Password`, the chat is added to the allowed set for the lifetime of the process. Authorization is stored in memory only and resets on application restart.
 3. If incorrect, the bot replies *"Incorrect password! Please, try again."*
 
 ## Multi-step commands
