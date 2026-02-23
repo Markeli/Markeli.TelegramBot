@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<PackageId>Markeli.TelegramBot</PackageId>
-		<Version>0.1.0</Version>
+		<Version>0.2.0</Version>
 		<Authors>Maxim Markelow</Authors>
 		<Description>Telegram bot infrastructure: command dispatching, state management, update queue, authentication.</Description>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
