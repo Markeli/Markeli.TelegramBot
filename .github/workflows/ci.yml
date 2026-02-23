@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -20,3 +22,44 @@ jobs:
           name: coverage-report
           path: artifacts/coverage-report/
         if: always()
+
+      - name: Update coverage badge
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          SUMMARY_FILE="artifacts/coverage-report/Summary.txt"
+          if [ ! -f "$SUMMARY_FILE" ]; then
+            echo "Coverage summary not found, skipping badge update"
+            exit 0
+          fi
+
+          COVERAGE=$(grep -oP 'Line coverage:\s*\K[\d.]+' "$SUMMARY_FILE" || echo "0")
+          COVERAGE_INT=${COVERAGE%.*}
+
+          if [ "$COVERAGE_INT" -ge 80 ]; then
+            COLOR="brightgreen"
+          elif [ "$COVERAGE_INT" -ge 60 ]; then
+            COLOR="yellow"
+          elif [ "$COVERAGE_INT" -ge 40 ]; then
+            COLOR="orange"
+          else
+            COLOR="red"
+          fi
+
+          mkdir -p badge
+          cat > badge/coverage.json <<EOF
+          {
+            "schemaVersion": 1,
+            "label": "coverage",
+            "message": "${COVERAGE}%",
+            "color": "${COLOR}"
+          }
+          EOF
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan badges-tmp
+          git rm -rf . > /dev/null 2>&1 || true
+          cp -r badge/coverage.json .
+          git add coverage.json
+          git commit -m "Update coverage badge (${COVERAGE}%)"
+          git push origin HEAD:badges -f
