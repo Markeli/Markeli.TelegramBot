@@ -1,6 +1,6 @@
 # Markeli.TelegramBot
 
-[![CI](https://github.com/Markeli/Markeli.TelegramBot/actions/workflows/ci.yml/badge.svg)](https://github.com/Markeli/Markeli.TelegramBot/actions/workflows/ci.yml)
+[![CI](https://github.com/Markeli/Markeli.TelegramBot/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Markeli/Markeli.TelegramBot/actions/workflows/ci.yml)
 [![NuGet](https://img.shields.io/nuget/v/Markeli.TelegramBot)](https://www.nuget.org/packages/Markeli.TelegramBot)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/Markeli.TelegramBot)](https://www.nuget.org/packages/Markeli.TelegramBot)
 [![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Markeli/Markeli.TelegramBot/badges/coverage.json)](https://github.com/Markeli/Markeli.TelegramBot/actions/workflows/ci.yml)
