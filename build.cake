@@ -56,7 +56,7 @@ Task("Test")
 			settings.ArgumentCustomization = args => args
 				.Append("/p:CollectCoverage=true")
 				.Append("/p:CoverletOutputFormat=cobertura")
-				.Append($"/p:CoverletOutput={MakeAbsolute(artifactsDir)}/coverage.cobertura.xml");
+				.Append($"/p:CoverletOutput={MakeAbsolute(artifactsDir)}/coverage");
 		}
 
 		DotNetTest(solutionPath, settings);
