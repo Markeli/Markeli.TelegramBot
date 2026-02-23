@@ -66,7 +66,10 @@ Task("Coverage-Report")
 	.IsDependentOn("Test")
 	.Does(() =>
 	{
-		var reportPath = $"{MakeAbsolute(artifactsDir)}/coverage.cobertura.xml";
+		var suffix = String.IsNullOrEmpty(framework)
+			? "coverage.cobertura.xml"
+			: $"coverage.{framework}.cobertura.xml";
+		var reportPath = $"{MakeAbsolute(artifactsDir)}/{suffix}";
 		if (!FileExists(reportPath))
 			throw new Exception($"Coverage report not found at {reportPath}. Did you run with --coverage=true?");
 
