@@ -15,6 +15,7 @@ public abstract class TelegramBotCommandStateBase : ITelegramBotCommandState
 	/// </summary>
 	public DateTime LastModifiedAt { get; set; }
 
+	/// <inheritdoc cref="TelegramBotCommandStateBase"/>
 	protected TelegramBotCommandStateBase()
 	{
 		CreatedAt = DateTime.UtcNow;

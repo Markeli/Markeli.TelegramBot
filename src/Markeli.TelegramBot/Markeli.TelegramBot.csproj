@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
+		<TargetFrameworks>net6.0;net7.0;net8.0;net9.0;net10.0</TargetFrameworks>
 		<PackageId>Markeli.TelegramBot</PackageId>
 		<Version>0.2.0</Version>
 		<Authors>Maxim Markelow</Authors>
@@ -15,7 +16,6 @@
 		<PackageReleaseNotes>See CHANGELOG.md</PackageReleaseNotes>
 
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<NoWarn>CS1591</NoWarn>
 
 		<!-- SourceLink -->
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>

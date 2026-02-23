@@ -10,15 +10,18 @@ namespace Markeli.TelegramBot;
 public static class TelegramBotServiceCollectionExtensions
 {
 	/// <summary>
-	/// Registers Telegram bot infrastructure services (queue, cache, processor, dispatcher, bot client).
-	/// Command handlers should be registered separately via <see cref="AddTelegramBotCommandHandler{T}"/>.
+	/// Registers Telegram bot infrastructure services, including queue, cache, processor, dispatcher,
+	/// and bot client. Optionally includes a default help command. Command handlers should be
+	/// registered separately using <see cref="AddTelegramBotCommandHandler{T}"/>.
 	/// </summary>
-	/// <param name="services">The service collection.</param>
-	/// <param name="options">The Telegram bot options.</param>
-	/// <returns>The service collection for chaining.</returns>
+	/// <param name="services">The service collection where the services will be registered.</param>
+	/// <param name="options">Configuration options for the Telegram bot.</param>
+	/// <param name="addDefaultHelpCommand">Determines whether the default help command should be registered.</param>
+	/// <returns>The modified service collection for chaining additional calls.</returns>
 	public static IServiceCollection AddTelegramBotInfrastructure(
 		this IServiceCollection services,
-		TelegramBotOptions options)
+		TelegramBotOptions options,
+		bool addDefaultHelpCommand = true)
 	{
 		ArgumentNullException.ThrowIfNull(services);
 		ArgumentNullException.ThrowIfNull(options);
@@ -33,6 +36,25 @@ public static class TelegramBotServiceCollectionExtensions
 		services.AddSingleton<TelegramBotCommandStateCache>();
 		services.AddSingleton<TelegramUpdateProcessor>();
 		services.AddHostedService<TelegramBotUpdateDispatcher>();
+
+		if (addDefaultHelpCommand)
+		{
+			services.AddHelpCommand();
+		}
+
+		return services;
+	}
+
+	/// <summary>
+	/// Registers the built-in <c>/help</c> command handler that lists all registered commands.
+	/// </summary>
+	/// <param name="services">The service collection.</param>
+	/// <returns>The service collection for chaining.</returns>
+	private static IServiceCollection AddHelpCommand(this IServiceCollection services)
+	{
+		ArgumentNullException.ThrowIfNull(services);
+
+		services.AddSingleton<ITelegramBotCommandHandler, HelpCommandHandler>();
 
 		return services;
 	}

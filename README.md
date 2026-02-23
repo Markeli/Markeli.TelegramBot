@@ -18,6 +18,7 @@ Infrastructure library for building Telegram bots on .NET: command dispatching, 
 - **State management** — multi-step conversational commands with in-memory state cache (`TelegramBotCommandStateBase`).
 - **Update queue** — thread-safe queue with configurable parallelism and optional disk persistence on shutdown.
 - **Authentication** — simple password-based chat verification with allowed chat ID filtering.
+- **Built-in `/help` command** — opt-in handler that lists all registered commands via `AddHelpCommand()`.
 - **DI integration** — `AddTelegramBotInfrastructure` / `AddTelegramBotCommandHandler<T>` extensions for `IServiceCollection`.
 
 ## Architecture
@@ -62,6 +63,7 @@ builder.Services.AddTelegramBotInfrastructure(new TelegramBotOptions
 });
 
 builder.Services.AddTelegramBotCommandHandler<PingCommandHandler>();
+builder.Services.AddHelpCommand();
 ```
 
 Implement a command handler:
