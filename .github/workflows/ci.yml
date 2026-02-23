@@ -1,0 +1,90 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        framework: [net6.0, net7.0, net8.0, net9.0, net10.0]
+        include:
+          - framework: net6.0
+            dotnet-version: '6.0.x'
+          - framework: net7.0
+            dotnet-version: '7.0.x'
+          - framework: net8.0
+            dotnet-version: '8.0.x'
+          - framework: net9.0
+            dotnet-version: '9.0.x'
+          - framework: net10.0
+            dotnet-version: '10.0.x'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+      - run: dotnet tool restore
+      - run: dotnet cake --target=Test --framework=${{ matrix.framework }}
+
+  coverage:
+    runs-on: ubuntu-latest
+    needs: test
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet tool restore
+      - run: dotnet cake --target=Coverage-Report --framework=net10.0 --coverage=true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: artifacts/coverage-report/
+        if: always()
+
+      - name: Update coverage badge
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          SUMMARY_FILE="artifacts/coverage-report/Summary.txt"
+          if [ ! -f "$SUMMARY_FILE" ]; then
+            echo "Coverage summary not found, skipping badge update"
+            exit 0
+          fi
+
+          COVERAGE=$(grep -oP 'Line coverage:\s*\K[\d.]+' "$SUMMARY_FILE" || echo "0")
+          COVERAGE_INT=${COVERAGE%.*}
+
+          if [ "$COVERAGE_INT" -ge 80 ]; then
+            COLOR="brightgreen"
+          elif [ "$COVERAGE_INT" -ge 60 ]; then
+            COLOR="yellow"
+          elif [ "$COVERAGE_INT" -ge 40 ]; then
+            COLOR="orange"
+          else
+            COLOR="red"
+          fi
+
+          mkdir -p badge
+          cat > badge/coverage.json <<EOF
+          {
+            "schemaVersion": 1,
+            "label": "coverage",
+            "message": "${COVERAGE}%",
+            "color": "${COLOR}"
+          }
+          EOF
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan badges-tmp
+          git rm -rf . > /dev/null 2>&1 || true
+          cp -r badge/coverage.json .
+          git add coverage.json
+          git commit -m "Update coverage badge (${COVERAGE}%)"
+          git push origin HEAD:badges -f
