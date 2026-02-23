@@ -1,0 +1,68 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Build & Test Commands
+
+```bash
+# Restore Cake tool (required once)
+dotnet tool restore
+
+# Build
+dotnet cake --target=Build
+
+# Run all tests (all target frameworks)
+dotnet test
+
+# Run tests for a specific framework
+dotnet test tests/Markeli.TelegramBot.Tests/Markeli.TelegramBot.Tests.csproj --framework=net8.0
+
+# Run a single test by fully qualified name
+dotnet test --filter "FullyQualifiedName~HelpCommandHandlerTests.BuildHelpMessage_ExcludesHelpCommandItself" --framework=net8.0
+
+# Tests with coverage via Cake
+dotnet cake --target=Test --coverage=true --framework=net10.0
+
+# Generate HTML coverage report (requires --coverage=true)
+dotnet cake --target=Coverage-Report --framework=net10.0 --coverage=true
+
+# Create NuGet package
+dotnet cake --target=Pack
+```
+
+## Architecture
+
+NuGet library for building Telegram bots on .NET. Single solution, single library project + test project. Targets `net6.0` through `net10.0`.
+
+**Update processing pipeline:**
+
+```
+Telegram API (polling)
+  → TelegramBotUpdateDispatcher (IHostedService, concurrency via SemaphoreSlim)
+    → TelegramUpdateQueue (thread-safe BlockingCollection, optional disk persistence)
+      → TelegramUpdateProcessor (auth gate → message type guard → state lookup → command dispatch)
+        → ITelegramBotCommandHandler.ProcessCommandAsync()
+```
+
+**Key abstractions:**
+- `ITelegramBotCommandHandler` — command contract: `CommandName`, `CommandText`, `SupportedUpdateTypes`, `SupportedMessageTypes`, `ProcessCommandAsync()`, optional `TryGetLockKey()` for exclusive per-key execution.
+- `ITelegramBotCommandState` / `TelegramBotCommandStateBase` — multi-step conversational state stored in `TelegramBotCommandStateCache` (IMemoryCache, 1-hour expiry).
+- `TelegramBotCommandProcessingResult` — record returned by handlers; `WithoutState()` or `WithSimpleState()`.
+- `TelegramBotOptions` — configuration record with self-validation (`ApiToken`, `Password`, `AllowedChatIds`, `MaxDegreeOfParallelism`, `QueuePersistenceFilePath`).
+
+**DI registration:**
+```csharp
+services.AddTelegramBotInfrastructure(options, addDefaultHelpCommand: true);
+services.AddTelegramBotCommandHandler<MyCommandHandler>();
+```
+All services registered as singletons. Options validated eagerly at registration time.
+
+## Code Conventions
+
+- **Tabs** for indentation, max ~130 character line length.
+- C# latest, nullable reference types enabled, implicit usings enabled.
+- XML doc comments (`///`) on public APIs; `CS1591` warning enforced.
+- Null checks via `ArgumentNullException.ThrowIfNull()`.
+- Async methods take `CancellationToken`.
+- Central package versioning via `Directory.Packages.props` with per-framework `Microsoft.Extensions.*` versions.
+- Tests use xUnit with Moq; naming convention: `MethodName_Context_ExpectedResult`.
