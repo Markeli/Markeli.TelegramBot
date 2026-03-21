@@ -34,12 +34,18 @@ public class HttpProxyOptions
 		}
 
 		if (!Uri.TryCreate(Url, UriKind.Absolute, out var proxyUri))
+		{
 			errors.Add($"{nameof(Url)} must be a valid absolute URI");
+		}
 		else if (proxyUri.Scheme is not "http" and not "https")
+		{
 			errors.Add($"{nameof(Url)} must use http or https scheme");
+		}
 
 		if (Password is not null && Username is null)
+		{
 			errors.Add($"{nameof(Username)} is required when {nameof(Password)} is set");
+		}
 
 		return errors;
 	}

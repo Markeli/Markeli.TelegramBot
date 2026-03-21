@@ -55,7 +55,9 @@ public class TelegramBotOptions
 		if (HttpProxy is not null)
 		{
 			foreach (var error in HttpProxy.Validate())
+			{
 				errors.Add($"{nameof(HttpProxy)}.{error}");
+			}
 		}
 
 		return errors;
