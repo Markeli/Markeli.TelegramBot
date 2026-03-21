@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFrameworks>net6.0;net7.0;net8.0;net9.0;net10.0</TargetFrameworks>
 		<PackageId>Markeli.TelegramBot</PackageId>
-		<Version>0.2.0</Version>
+		<Version>0.3.0</Version>
 		<Authors>Maxim Markelow</Authors>
 		<Description>Telegram bot infrastructure: command dispatching, state management, update queue, authentication.</Description>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>

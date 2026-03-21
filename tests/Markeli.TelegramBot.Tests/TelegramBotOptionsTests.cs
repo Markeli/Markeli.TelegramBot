@@ -82,5 +82,73 @@ public class TelegramBotOptionsTests
 		Assert.Equal(10, options.MaxDegreeOfParallelism);
 		Assert.Empty(options.AllowedChatIds);
 		Assert.Null(options.QueuePersistenceFilePath);
+		Assert.Null(options.HttpProxyUrl);
+	}
+
+	[Fact]
+	public void Validate_WithNullHttpProxyUrl_ReturnsNoErrors()
+	{
+		var options = new TelegramBotOptions
+		{
+			ApiToken = "test-token",
+			Password = "test-password",
+			HttpProxyUrl = null
+		};
+
+		var errors = options.Validate();
+
+		Assert.Empty(errors);
+	}
+
+	[Theory]
+	[InlineData("http://proxy.example.com:8080")]
+	[InlineData("https://proxy.example.com:3128")]
+	[InlineData("http://user:pass@proxy.example.com:8080")]
+	public void Validate_WithValidHttpProxyUrl_ReturnsNoErrors(string proxyUrl)
+	{
+		var options = new TelegramBotOptions
+		{
+			ApiToken = "test-token",
+			Password = "test-password",
+			HttpProxyUrl = proxyUrl
+		};
+
+		var errors = options.Validate();
+
+		Assert.Empty(errors);
+	}
+
+	[Theory]
+	[InlineData("not-a-url")]
+	[InlineData("just-text")]
+	public void Validate_WithInvalidHttpProxyUrl_ReturnsError(string proxyUrl)
+	{
+		var options = new TelegramBotOptions
+		{
+			ApiToken = "test-token",
+			Password = "test-password",
+			HttpProxyUrl = proxyUrl
+		};
+
+		var errors = options.Validate();
+
+		Assert.Contains(errors, e => e.Contains(nameof(TelegramBotOptions.HttpProxyUrl)));
+	}
+
+	[Theory]
+	[InlineData("ftp://proxy.example.com:21")]
+	[InlineData("socks5://proxy.example.com:1080")]
+	public void Validate_WithNonHttpHttpProxyUrl_ReturnsError(string proxyUrl)
+	{
+		var options = new TelegramBotOptions
+		{
+			ApiToken = "test-token",
+			Password = "test-password",
+			HttpProxyUrl = proxyUrl
+		};
+
+		var errors = options.Validate();
+
+		Assert.Contains(errors, e => e.Contains(nameof(TelegramBotOptions.HttpProxyUrl)));
 	}
 }

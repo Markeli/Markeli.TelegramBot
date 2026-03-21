@@ -99,6 +99,39 @@ public class TelegramBotServiceCollectionExtensionsTests
 	}
 
 	[Fact]
+	public void AddTelegramBotInfrastructure_WithHttpProxyUrl_RegistersBotClient()
+	{
+		var services = new ServiceCollection();
+		services.AddLogging();
+		var options = new TelegramBotOptions
+		{
+			ApiToken = "test-token",
+			Password = "test-password",
+			HttpProxyUrl = "http://proxy.example.com:8080"
+		};
+
+		services.AddTelegramBotInfrastructure(options);
+
+		var provider = services.BuildServiceProvider();
+		Assert.NotNull(provider.GetService<ITelegramBotClient>());
+	}
+
+	[Fact]
+	public void AddTelegramBotInfrastructure_WithInvalidHttpProxyUrl_Throws()
+	{
+		var services = new ServiceCollection();
+		var options = new TelegramBotOptions
+		{
+			ApiToken = "test-token",
+			Password = "test-password",
+			HttpProxyUrl = "not-a-url"
+		};
+
+		Assert.Throws<InvalidOperationException>(() =>
+			services.AddTelegramBotInfrastructure(options));
+	}
+
+	[Fact]
 	public void AddTelegramBotInfrastructure_ReturnsSameServiceCollection()
 	{
 		var services = new ServiceCollection();

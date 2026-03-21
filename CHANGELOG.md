@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.0] - 2026-03-22
+
+### Added
+
+- HTTP proxy support via `TelegramBotOptions.HttpProxyUrl` — when set, the bot client routes all Telegram API traffic through the specified HTTP/HTTPS proxy.
+
 ## [0.2.0] - 2026-02-23
 
 ### Added

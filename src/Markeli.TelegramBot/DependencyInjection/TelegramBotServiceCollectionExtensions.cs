@@ -1,3 +1,4 @@
+using System.Net;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Telegram.Bot;
@@ -31,7 +32,16 @@ public static class TelegramBotServiceCollectionExtensions
 		services.TryAddSingleton(options);
 
 		services.AddMemoryCache();
-		services.AddSingleton<ITelegramBotClient>(_ => new TelegramBotClient(options.ApiToken));
+		services.AddSingleton<ITelegramBotClient>(_ =>
+		{
+			if (options.HttpProxyUrl is null)
+				return new TelegramBotClient(options.ApiToken);
+
+			var proxy = new WebProxy(options.HttpProxyUrl);
+			var handler = new HttpClientHandler { Proxy = proxy, UseProxy = true };
+			var httpClient = new HttpClient(handler);
+			return new TelegramBotClient(options.ApiToken, httpClient);
+		});
 		services.AddSingleton<TelegramUpdateQueue>();
 		services.AddSingleton<TelegramBotCommandStateCache>();
 		services.AddSingleton<TelegramUpdateProcessor>();

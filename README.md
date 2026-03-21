@@ -99,6 +99,7 @@ All settings are passed via `TelegramBotOptions`:
 | `Password` | `string` | *required* | Password for chat authentication (see below). |
 | `AllowedChatIds` | `long[]` | `[]` | Pre-authorized chat IDs that skip password verification. |
 | `MaxDegreeOfParallelism` | `int` | `10` | Maximum number of updates processed concurrently. |
+| `HttpProxyUrl` | `string?` | `null` | HTTP proxy URL (e.g. `http://proxy.example.com:8080`). When set, all bot API traffic is routed through this proxy. |
 | `QueuePersistenceFilePath` | `string?` | `null` | File path for persisting pending updates on shutdown. If set, the queue is saved to disk during graceful shutdown and restored on next startup. |
 
 ### Authentication flow
