@@ -33,10 +33,9 @@ public class TelegramBotOptions
 	public int MaxDegreeOfParallelism { get; init; } = 10;
 
 	/// <summary>
-	/// HTTP proxy URL (e.g. "http://proxy.example.com:8080").
-	/// When set, all Telegram Bot API traffic is routed through this proxy.
+	/// HTTP proxy settings. When set, all Telegram Bot API traffic is routed through this proxy.
 	/// </summary>
-	public string? HttpProxyUrl { get; init; }
+	public HttpProxyOptions? HttpProxy { get; init; }
 
 	/// <summary>
 	/// Validates the options and returns a list of validation errors.
@@ -52,12 +51,11 @@ public class TelegramBotOptions
 			errors.Add($"{nameof(Password)} can't be empty");
 		if (MaxDegreeOfParallelism <= 0)
 			errors.Add($"{nameof(MaxDegreeOfParallelism)} must be greater than 0");
-		if (HttpProxyUrl is not null)
+
+		if (HttpProxy is not null)
 		{
-			if (!Uri.TryCreate(HttpProxyUrl, UriKind.Absolute, out var proxyUri))
-				errors.Add($"{nameof(HttpProxyUrl)} must be a valid absolute URI");
-			else if (proxyUri.Scheme is not "http" and not "https")
-				errors.Add($"{nameof(HttpProxyUrl)} must use http or https scheme");
+			foreach (var error in HttpProxy.Validate())
+				errors.Add($"{nameof(HttpProxy)}.{error}");
 		}
 
 		return errors;

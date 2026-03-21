@@ -99,7 +99,7 @@ public class TelegramBotServiceCollectionExtensionsTests
 	}
 
 	[Fact]
-	public void AddTelegramBotInfrastructure_WithHttpProxyUrl_RegistersBotClient()
+	public void AddTelegramBotInfrastructure_WithHttpProxy_RegistersBotClient()
 	{
 		var services = new ServiceCollection();
 		services.AddLogging();
@@ -107,7 +107,7 @@ public class TelegramBotServiceCollectionExtensionsTests
 		{
 			ApiToken = "test-token",
 			Password = "test-password",
-			HttpProxyUrl = "http://proxy.example.com:8080"
+			HttpProxy = new HttpProxyOptions { Url = "http://proxy.example.com:8080" }
 		};
 
 		services.AddTelegramBotInfrastructure(options);
@@ -117,14 +117,37 @@ public class TelegramBotServiceCollectionExtensionsTests
 	}
 
 	[Fact]
-	public void AddTelegramBotInfrastructure_WithInvalidHttpProxyUrl_Throws()
+	public void AddTelegramBotInfrastructure_WithHttpProxyCredentials_RegistersBotClient()
+	{
+		var services = new ServiceCollection();
+		services.AddLogging();
+		var options = new TelegramBotOptions
+		{
+			ApiToken = "test-token",
+			Password = "test-password",
+			HttpProxy = new HttpProxyOptions
+			{
+				Url = "http://proxy.example.com:8080",
+				Username = "user",
+				Password = "pass"
+			}
+		};
+
+		services.AddTelegramBotInfrastructure(options);
+
+		var provider = services.BuildServiceProvider();
+		Assert.NotNull(provider.GetService<ITelegramBotClient>());
+	}
+
+	[Fact]
+	public void AddTelegramBotInfrastructure_WithInvalidHttpProxy_Throws()
 	{
 		var services = new ServiceCollection();
 		var options = new TelegramBotOptions
 		{
 			ApiToken = "test-token",
 			Password = "test-password",
-			HttpProxyUrl = "not-a-url"
+			HttpProxy = new HttpProxyOptions { Url = "not-a-url" }
 		};
 
 		Assert.Throws<InvalidOperationException>(() =>

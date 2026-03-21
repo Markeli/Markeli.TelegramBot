@@ -99,8 +99,32 @@ All settings are passed via `TelegramBotOptions`:
 | `Password` | `string` | *required* | Password for chat authentication (see below). |
 | `AllowedChatIds` | `long[]` | `[]` | Pre-authorized chat IDs that skip password verification. |
 | `MaxDegreeOfParallelism` | `int` | `10` | Maximum number of updates processed concurrently. |
-| `HttpProxyUrl` | `string?` | `null` | HTTP proxy URL (e.g. `http://proxy.example.com:8080`). When set, all bot API traffic is routed through this proxy. |
+| `HttpProxy` | `HttpProxyOptions?` | `null` | HTTP proxy settings. When set, all bot API traffic is routed through this proxy. See below. |
 | `QueuePersistenceFilePath` | `string?` | `null` | File path for persisting pending updates on shutdown. If set, the queue is saved to disk during graceful shutdown and restored on next startup. |
+
+### HTTP proxy
+
+`HttpProxyOptions` fields:
+
+| Property | Type | Description |
+|---|---|---|
+| `Url` | `string` | Proxy URL (e.g. `http://proxy.example.com:8080`). Required. |
+| `Username` | `string?` | Proxy authentication username. |
+| `Password` | `string?` | Proxy authentication password. |
+
+```csharp
+services.AddTelegramBotInfrastructure(new TelegramBotOptions
+{
+    ApiToken = "BOT_TOKEN",
+    Password = "secret",
+    HttpProxy = new HttpProxyOptions
+    {
+        Url = "http://proxy.example.com:8080",
+        Username = "user",
+        Password = "pass"
+    }
+});
+```
 
 ### Authentication flow
 

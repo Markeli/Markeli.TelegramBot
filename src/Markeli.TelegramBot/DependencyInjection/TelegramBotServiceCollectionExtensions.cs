@@ -34,10 +34,13 @@ public static class TelegramBotServiceCollectionExtensions
 		services.AddMemoryCache();
 		services.AddSingleton<ITelegramBotClient>(_ =>
 		{
-			if (options.HttpProxyUrl is null)
+			if (options.HttpProxy is null)
 				return new TelegramBotClient(options.ApiToken);
 
-			var proxy = new WebProxy(options.HttpProxyUrl);
+			var proxy = new WebProxy(options.HttpProxy.Url);
+			if (options.HttpProxy.Username is not null)
+				proxy.Credentials = new NetworkCredential(options.HttpProxy.Username, options.HttpProxy.Password);
+
 			var handler = new HttpClientHandler { Proxy = proxy, UseProxy = true };
 			var httpClient = new HttpClient(handler);
 			return new TelegramBotClient(options.ApiToken, httpClient);
