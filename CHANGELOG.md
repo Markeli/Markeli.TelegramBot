@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.0.0] - 2026-08-11
+
+### Removed
+
+- **Breaking:** dropped `net6.0` and `net7.0` target frameworks (both out of support). Supported targets are now `net8.0`, `net9.0` and `net10.0`.
+
+### Added
+
+- Repository-level `NuGet.config` restricting package restore to nuget.org: inherited sources are cleared, `disabledPackageSources` is reset, and every package pattern is mapped to nuget.org via `packageSourceMapping`.
+- Rich message support (Bot API 10.1):
+  - `TelegramBotExtensions.GetMessageText()` — reads the message text with a fallback that flattens `Message.RichMessage` to plain text (blocks joined with newlines, inline formatting dropped). Used for command resolution and password verification, so rich messages now route to handlers instead of being answered with *"Unsupported command"* — previously such a message also abandoned an in-progress multi-step state.
+  - `TelegramBotExtensions.GetRichBlocks()` — exposes the structured `RichBlock[]` of a rich message.
+  - `TelegramBotMessageTypes.TextOrRich` — shared `SupportedMessageTypes` set covering `MessageType.Text` and `MessageType.RichMessage`. Adopted by `HelpCommandHandler`.
+- `AddTelegramBotInfrastructure` now rejects a malformed `ApiToken` at registration time instead of failing when `ITelegramBotClient` is first resolved.
+
+### Changed
+
+- Updated `Telegram.Bot` 19.0.0 → 22.10.2.1. Renamed API usages: `SendTextMessageAsync` → `SendMessage`, `DeleteMessageAsync` → `DeleteMessage`; `ITelegramBotClient.MakeRequestAsync` → `SendRequest`.
+- Updated package versions: `Moq` 4.20.72, `coverlet.msbuild` 10.0.1, `Microsoft.NET.Test.Sdk` 18.8.1 (single version, per-framework condition removed), `Microsoft.SourceLink.GitHub` 10.0.301, `Microsoft.Extensions.*` 9.0.18 / 10.0.10.
+- Updated build tools: `Cake.Tool` 6.2.0, `dotnet-reportgenerator-globaltool` 5.5.11.
+- CI matrix and release workflow SDK list reduced to 8.0.x / 9.0.x / 10.0.x.
+
+### Fixed
+
+- `NullReferenceException` in `TelegramUpdateProcessor` when an unauthenticated chat sent an update without a `Message` (e.g. a callback query). The exception was swallowed by the surrounding handler, so the chat silently received no reply and could never authenticate.
+
 ## [0.3.0] - 2026-03-22
 
 ### Added

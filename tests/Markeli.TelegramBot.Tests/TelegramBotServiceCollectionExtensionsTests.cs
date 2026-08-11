@@ -10,9 +10,12 @@ namespace Markeli.TelegramBot.Tests;
 
 public class TelegramBotServiceCollectionExtensionsTests
 {
+	// Telegram.Bot validates the "{botId}:{secret}" token shape when the client is constructed.
+	private const string TestApiToken = "123456:test-token";
+
 	private static TelegramBotOptions CreateValidOptions() => new()
 	{
-		ApiToken = "test-token",
+		ApiToken = TestApiToken,
 		Password = "test-password"
 	};
 
@@ -62,6 +65,19 @@ public class TelegramBotServiceCollectionExtensionsTests
 	}
 
 	[Fact]
+	public void AddTelegramBotInfrastructure_WithMalformedApiToken_ThrowsAtRegistrationTime()
+	{
+		var services = new ServiceCollection();
+		var options = new TelegramBotOptions
+		{
+			ApiToken = "no-bot-id-prefix",
+			Password = "test-password"
+		};
+
+		Assert.Throws<ArgumentException>(() => services.AddTelegramBotInfrastructure(options));
+	}
+
+	[Fact]
 	public void AddTelegramBotInfrastructure_WithNullServices_Throws()
 	{
 		Assert.Throws<ArgumentNullException>(() =>
@@ -105,7 +121,7 @@ public class TelegramBotServiceCollectionExtensionsTests
 		services.AddLogging();
 		var options = new TelegramBotOptions
 		{
-			ApiToken = "test-token",
+			ApiToken = TestApiToken,
 			Password = "test-password",
 			HttpProxy = new HttpProxyOptions { Url = "http://proxy.example.com:8080" }
 		};
@@ -123,7 +139,7 @@ public class TelegramBotServiceCollectionExtensionsTests
 		services.AddLogging();
 		var options = new TelegramBotOptions
 		{
-			ApiToken = "test-token",
+			ApiToken = TestApiToken,
 			Password = "test-password",
 			HttpProxy = new HttpProxyOptions
 			{
@@ -145,7 +161,7 @@ public class TelegramBotServiceCollectionExtensionsTests
 		var services = new ServiceCollection();
 		var options = new TelegramBotOptions
 		{
-			ApiToken = "test-token",
+			ApiToken = TestApiToken,
 			Password = "test-password",
 			HttpProxy = new HttpProxyOptions { Url = "not-a-url" }
 		};

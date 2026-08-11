@@ -29,7 +29,7 @@ public class TelegramUpdateProcessorTests
 		_stateCache = new TelegramBotCommandStateCache(memoryCache);
 
 		_botClient
-			.Setup(x => x.MakeRequestAsync(
+			.Setup(x => x.SendRequest(
 				It.IsAny<SendMessageRequest>(),
 				It.IsAny<CancellationToken>()))
 			.ReturnsAsync(new Message { Chat = new Chat { Id = 1 } });
@@ -105,7 +105,7 @@ public class TelegramUpdateProcessorTests
 			It.IsAny<ITelegramBotCommandState?>(),
 			It.IsAny<CancellationToken>()), Times.Never);
 
-		_botClient.Verify(x => x.MakeRequestAsync(
+		_botClient.Verify(x => x.SendRequest(
 			It.IsAny<SendMessageRequest>(),
 			It.IsAny<CancellationToken>()), Times.Once);
 	}
@@ -239,6 +239,71 @@ public class TelegramUpdateProcessorTests
 		await processor.ProcessAsync(CreateTextUpdate(100), command.Object, CancellationToken.None);
 
 		Assert.Null(_stateCache.GetEntry(100));
+	}
+
+	[Fact]
+	public async Task ProcessAsync_UnauthenticatedUpdateWithoutMessage_StillPromptsAndRejects()
+	{
+		var processor = CreateProcessor();
+		var command = CreateMockCommand();
+
+		// An update carrying no Message at all (e.g. a callback query from an unknown chat).
+		// The second one used to dereference update.Message and fail before replying.
+		Update CreateCallbackUpdate() => new()
+		{
+			CallbackQuery = new CallbackQuery
+			{
+				Id = "1",
+				ChatInstance = "test",
+				Message = new Message { Chat = new Chat { Id = 400 } }
+			}
+		};
+
+		await processor.ProcessAsync(CreateCallbackUpdate(), command.Object, CancellationToken.None);
+		await processor.ProcessAsync(CreateCallbackUpdate(), command.Object, CancellationToken.None);
+
+		// First call prompts for the password, second one answers "incorrect password".
+		_botClient.Verify(x => x.SendRequest(
+			It.IsAny<SendMessageRequest>(),
+			It.IsAny<CancellationToken>()), Times.Exactly(2));
+
+		command.Verify(x => x.ProcessCommandAsync(
+			It.IsAny<ITelegramBotClient>(),
+			It.IsAny<Update>(),
+			It.IsAny<ITelegramBotCommandState?>(),
+			It.IsAny<CancellationToken>()), Times.Never);
+	}
+
+	[Fact]
+	public async Task ProcessAsync_RichMessagePassword_AuthenticatesChat()
+	{
+		var processor = CreateProcessor();
+		var command = CreateMockCommand();
+
+		await processor.ProcessAsync(CreateTextUpdate(500, "hi"), command.Object, CancellationToken.None);
+
+		// The password arrives as a rich formatted message, which carries no Message.Text.
+		var richPassword = new Update
+		{
+			Message = new Message
+			{
+				Chat = new Chat { Id = 500 },
+				RichMessage = new RichMessage
+				{
+					Blocks = [new RichBlockParagraph { Text = new RichTextText { Text = "secret" } }]
+				}
+			}
+		};
+		await processor.ProcessAsync(richPassword, command.Object, CancellationToken.None);
+
+		var update = CreateTextUpdate(500);
+		await processor.ProcessAsync(update, command.Object, CancellationToken.None);
+
+		command.Verify(x => x.ProcessCommandAsync(
+			_botClient.Object,
+			update,
+			null,
+			It.IsAny<CancellationToken>()), Times.Once);
 	}
 
 	[Fact]

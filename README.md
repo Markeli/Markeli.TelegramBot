@@ -9,7 +9,7 @@ Infrastructure library for building Telegram bots on .NET: command dispatching, 
 
 ## Prerequisites
 
-- [.NET 6.0](https://dotnet.microsoft.com/download/dotnet/6.0) or later
+- [.NET 8.0](https://dotnet.microsoft.com/download/dotnet/8.0) or later
 - Telegram Bot API token — create one via [BotFather](https://core.telegram.org/bots#botfather)
 
 ## Features
@@ -19,6 +19,7 @@ Infrastructure library for building Telegram bots on .NET: command dispatching, 
 - **Update queue** — thread-safe queue with configurable parallelism and optional disk persistence on shutdown.
 - **Authentication** — simple password-based chat verification with allowed chat ID filtering.
 - **Built-in `/help` command** — opt-in handler that lists all registered commands via `AddHelpCommand()`.
+- **Rich message support** — rich formatted messages (Bot API 10.1) are routed like plain text via `Update.GetMessageText()`, with structured blocks available through `Update.GetRichBlocks()`.
 - **DI integration** — `AddTelegramBotInfrastructure` / `AddTelegramBotCommandHandler<T>` extensions for `IServiceCollection`.
 
 ## Architecture
@@ -74,13 +75,13 @@ public class PingCommandHandler : ITelegramBotCommandHandler
     public string CommandName => "Ping";
     public string CommandText => "/ping";
     public IReadOnlySet<UpdateType> SupportedUpdateTypes => new HashSet<UpdateType> { UpdateType.Message };
-    public IReadOnlySet<MessageType> SupportedMessageTypes => new HashSet<MessageType> { MessageType.Text };
+    public IReadOnlySet<MessageType> SupportedMessageTypes => TelegramBotMessageTypes.TextOrRich;
 
     public async Task<TelegramBotCommandProcessingResult> ProcessCommandAsync(
         ITelegramBotClient telegramBotClient, Update telegramUpdate,
         ITelegramBotCommandState? commandState, CancellationToken cancellationToken)
     {
-        await telegramBotClient.SendTextMessageAsync(
+        await telegramBotClient.SendMessage(
             telegramUpdate.Message!.Chat.Id, "pong", cancellationToken: cancellationToken);
         return TelegramBotCommandProcessingResult.WithoutState();
     }
@@ -144,7 +145,7 @@ public class GreetCommandHandler : ITelegramBotCommandHandler
     public string CommandName => "Greet";
     public string CommandText => "/greet";
     public IReadOnlySet<UpdateType> SupportedUpdateTypes => new HashSet<UpdateType> { UpdateType.Message };
-    public IReadOnlySet<MessageType> SupportedMessageTypes => new HashSet<MessageType> { MessageType.Text };
+    public IReadOnlySet<MessageType> SupportedMessageTypes => TelegramBotMessageTypes.TextOrRich;
 
     public async Task<TelegramBotCommandProcessingResult> ProcessCommandAsync(
         ITelegramBotClient telegramBotClient, Update telegramUpdate,
@@ -154,13 +155,13 @@ public class GreetCommandHandler : ITelegramBotCommandHandler
 
         if (commandState is null)
         {
-            await telegramBotClient.SendTextMessageAsync(
+            await telegramBotClient.SendMessage(
                 chatId, "What is your name?", cancellationToken: cancellationToken);
             return TelegramBotCommandProcessingResult.WithSimpleState();
         }
 
-        var name = telegramUpdate.Message.Text;
-        await telegramBotClient.SendTextMessageAsync(
+        var name = telegramUpdate.GetMessageText();
+        await telegramBotClient.SendMessage(
             chatId, $"Hello, {name}!", cancellationToken: cancellationToken);
         return TelegramBotCommandProcessingResult.WithoutState();
     }
@@ -170,6 +171,40 @@ public class GreetCommandHandler : ITelegramBotCommandHandler
 For custom state data, implement `ITelegramBotCommandState` (or extend `TelegramBotCommandStateBase` for timestamps) and return it via `new TelegramBotCommandProcessingResult { State = myState }`.
 
 The user can abort a multi-step flow at any time by sending another `/command` — it will be matched to the new handler instead.
+
+## Rich messages
+
+A rich formatted message (Bot API 10.1) carries its content in `Message.RichMessage` and leaves `Message.Text` unset, so it arrives as `MessageType.RichMessage` rather than `MessageType.Text`.
+
+**Receiving.** Declare `TelegramBotMessageTypes.TextOrRich` in `SupportedMessageTypes` to accept both, and read the text through `Update.GetMessageText()`, which falls back to flattening the rich blocks into plain text (blocks joined with newlines, inline formatting dropped). A handler that declares only `MessageType.Text` and reads `Message.Text` directly will reject rich messages.
+
+For the structure itself, use `Update.GetRichBlocks()`:
+
+```csharp
+var blocks = telegramUpdate.GetRichBlocks();
+if (blocks is not null)
+{
+    foreach (var table in blocks.OfType<RichBlockTable>())
+    {
+        // ...
+    }
+}
+```
+
+**Sending.** No library API is involved — handlers receive `ITelegramBotClient` directly and call `Telegram.Bot` themselves:
+
+```csharp
+await telegramBotClient.SendRichMessage(chatId, new InputRichMessage
+{
+    Blocks =
+    [
+        new InputRichBlockSectionHeading { Text = new RichTextText { Text = "Daily report" } },
+        new InputRichBlockParagraph { Text = new RichTextText { Text = "All systems nominal." } }
+    ]
+}, cancellationToken: cancellationToken);
+```
+
+`InputRichMessage` accepts exactly one of `Blocks`, `Html`, or `Markdown`. Use `SendRichMessageDraft` to stream a partial message while it is still being generated.
 
 ## Concurrent lock keys
 
@@ -198,10 +233,13 @@ The project uses [Cake](https://cakebuild.net/) for build automation. Available 
 dotnet cake --target=Build            # Clean + build
 dotnet cake --target=Test             # Build + run tests with coverage
 dotnet cake --target=Coverage-Report  # Test + generate HTML coverage report
-dotnet cake --target=Pack             # Coverage-Report + create NuGet package
+dotnet cake --target=Pack             # Build + create NuGet package
 ```
 
 Coverage reports are generated in `./artifacts/coverage-report/`.
+
+Packages are restored exclusively from nuget.org: the repository-level `NuGet.config` clears any inherited
+source and maps every package pattern to nuget.org, so restore behaves identically on any machine.
 
 ## License
 
