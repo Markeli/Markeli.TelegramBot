@@ -63,7 +63,7 @@ public class TelegramUpdateProcessor
 		{
 			if (!_allowedChatIds.ContainsKey(chatId))
 			{
-				await HandleUnauthenticatedUserAsync(chatId, update.Message!, cancellationToken);
+				await HandleUnauthenticatedUserAsync(chatId, update, cancellationToken);
 				return;
 			}
 
@@ -139,19 +139,20 @@ public class TelegramUpdateProcessor
 
 	private async Task HandleUnauthenticatedUserAsync(
 		long chatId,
-		Message message,
+		Update update,
 		CancellationToken cancellationToken)
 	{
 		if (!_waitingPasswordChatIds.TryAdd(chatId, 0))
 		{
-			if (Equals(message.Text, _botOptions.Password))
+			// Updates without a message (e.g. a callback query) carry no password: treated as incorrect.
+			if (Equals(update.GetMessageText(), _botOptions.Password))
 			{
 				_allowedChatIds.TryAdd(chatId, 0);
 				_logger.LogInformation(
 					"Chat ChatId={ChatId} authenticated successfully",
 					chatId);
 
-				await _botClient.SendTextMessageAsync(
+				await _botClient.SendMessage(
 					chatId,
 					"Correct! Now you can send me command to execute. Please, click on \"Menu\" to list all of them.",
 					cancellationToken: cancellationToken);
@@ -162,7 +163,7 @@ public class TelegramUpdateProcessor
 					"Wrong password from chat ChatId={ChatId}",
 					chatId);
 
-				await _botClient.SendTextMessageAsync(
+				await _botClient.SendMessage(
 					chatId,
 					"Incorrect password! Please, try again.",
 					cancellationToken: cancellationToken);
@@ -170,7 +171,7 @@ public class TelegramUpdateProcessor
 		}
 		else
 		{
-			await _botClient.SendTextMessageAsync(
+			await _botClient.SendMessage(
 				chatId,
 				$"Hi! Your chat ID is `{chatId}`. To use this bot, please, send a verification password.",
 				cancellationToken: cancellationToken);
@@ -192,7 +193,7 @@ public class TelegramUpdateProcessor
 			chatId,
 			messageType);
 
-		await _botClient.SendTextMessageAsync(
+		await _botClient.SendMessage(
 			chatId,
 			$"Command \"{commandName}\" doesn't support {messageType} messages. Please use supported message types.",
 			cancellationToken: cancellationToken);

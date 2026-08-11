@@ -1,3 +1,4 @@
+using Markeli.TelegramBot.Commands.States;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -103,6 +104,60 @@ public class TelegramBotUpdateDispatcherTests
 				_botClient.Object,
 				Array.Empty<ITelegramBotCommandHandler>(),
 				_stateCache));
+	}
+
+	private static Update CreateRichUpdate(long chatId, string text)
+	{
+		return new Update
+		{
+			Message = new Message
+			{
+				Chat = new Chat { Id = chatId },
+				RichMessage = new RichMessage
+				{
+					Blocks = [new RichBlockParagraph { Text = new RichTextText { Text = text } }]
+				}
+			}
+		};
+	}
+
+	[Fact]
+	public void ResolveCommand_RichMessageStartingWithCommand_ResolvesCommand()
+	{
+		var command = CreateMockCommand("report", "/report");
+		var dispatcher = CreateDispatcher(new[] { command.Object });
+
+		var resolved = dispatcher.ResolveCommand(CreateRichUpdate(100, "/report daily"), 100);
+
+		Assert.Same(command.Object, resolved);
+	}
+
+	[Fact]
+	public void ResolveCommand_RichMessageWithCachedState_ReturnsCachedHandler()
+	{
+		var command = CreateMockCommand();
+		var dispatcher = CreateDispatcher(new[] { command.Object });
+		_stateCache.SetEntry(100, command.Object, new SimpleCommandState());
+
+		// A rich message carries no Message.Text: before rich support it fell through to
+		// "unsupported command" and abandoned the multi-step state.
+		var resolved = dispatcher.ResolveCommand(CreateRichUpdate(100, "some answer"), 100);
+
+		Assert.Same(command.Object, resolved);
+	}
+
+	[Fact]
+	public void ResolveCommand_MessageWithoutAnyText_ReturnsNull()
+	{
+		var command = CreateMockCommand();
+		var dispatcher = CreateDispatcher(new[] { command.Object });
+
+		var update = new Update
+		{
+			Message = new Message { Chat = new Chat { Id = 100 } }
+		};
+
+		Assert.Null(dispatcher.ResolveCommand(update, 100));
 	}
 
 	[Fact]

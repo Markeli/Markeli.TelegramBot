@@ -30,8 +30,7 @@ public sealed class HelpCommandHandler : ITelegramBotCommandHandler
 		new HashSet<UpdateType> { UpdateType.Message };
 
 	/// <inheritdoc />
-	public IReadOnlySet<MessageType> SupportedMessageTypes { get; } =
-		new HashSet<MessageType> { MessageType.Text };
+	public IReadOnlySet<MessageType> SupportedMessageTypes { get; } = TelegramBotMessageTypes.TextOrRich;
 
 	/// <inheritdoc />
 	public async Task<TelegramBotCommandProcessingResult> ProcessCommandAsync(
@@ -43,7 +42,7 @@ public sealed class HelpCommandHandler : ITelegramBotCommandHandler
 		var chatId = telegramUpdate.Message!.Chat.Id;
 		var message = BuildHelpMessage();
 
-		await telegramBotClient.SendTextMessageAsync(
+		await telegramBotClient.SendMessage(
 			chatId, message, cancellationToken: cancellationToken);
 
 		return TelegramBotCommandProcessingResult.WithoutState();

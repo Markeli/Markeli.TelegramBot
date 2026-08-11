@@ -19,6 +19,9 @@ public static class TelegramBotServiceCollectionExtensions
 	/// <param name="options">Configuration options for the Telegram bot.</param>
 	/// <param name="addDefaultHelpCommand">Determines whether the default help command should be registered.</param>
 	/// <returns>The modified service collection for chaining additional calls.</returns>
+	/// <exception cref="ArgumentException">
+	/// Thrown when <see cref="TelegramBotOptions.ApiToken"/> is not a well-formed bot token.
+	/// </exception>
 	public static IServiceCollection AddTelegramBotInfrastructure(
 		this IServiceCollection services,
 		TelegramBotOptions options,
@@ -29,13 +32,18 @@ public static class TelegramBotServiceCollectionExtensions
 
 		options.AssertValid();
 
+		// Built here rather than inside the factory below so that a malformed API token is rejected at
+		// registration time. The token format check lives in TelegramBotClientOptions, so it is not
+		// duplicated in TelegramBotOptions.Validate().
+		var botClientOptions = new TelegramBotClientOptions(options.ApiToken);
+
 		services.TryAddSingleton(options);
 
 		services.AddMemoryCache();
 		services.AddSingleton<ITelegramBotClient>(_ =>
 		{
 			if (options.HttpProxy is null)
-				return new TelegramBotClient(options.ApiToken);
+				return new TelegramBotClient(botClientOptions);
 
 			var proxy = new WebProxy(options.HttpProxy.Url);
 			if (options.HttpProxy.Username is not null)
@@ -43,7 +51,7 @@ public static class TelegramBotServiceCollectionExtensions
 
 			var handler = new HttpClientHandler { Proxy = proxy, UseProxy = true };
 			var httpClient = new HttpClient(handler);
-			return new TelegramBotClient(options.ApiToken, httpClient);
+			return new TelegramBotClient(botClientOptions, httpClient);
 		});
 		services.AddSingleton<TelegramUpdateQueue>();
 		services.AddSingleton<TelegramBotCommandStateCache>();

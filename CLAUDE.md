@@ -30,9 +30,17 @@ dotnet cake --target=Coverage-Report --framework=net10.0 --coverage=true
 dotnet cake --target=Pack
 ```
 
+`DotNetClean` (the Cake `Clean` target) does not remove stale per-framework output. After changing a
+package version in `Directory.Packages.props`, wipe `bin`/`obj` before trusting a test run — leftover
+assets from the previous version can make the same tests execute twice:
+
+```bash
+find src tests -type d \( -name bin -o -name obj \) -prune -exec rm -rf {} +
+```
+
 ## Architecture
 
-NuGet library for building Telegram bots on .NET. Single solution, single library project + test project. Targets `net6.0` through `net10.0`.
+NuGet library for building Telegram bots on .NET. Single solution, single library project + test project. Targets `net8.0` through `net10.0`.
 
 **Update processing pipeline:**
 
@@ -48,7 +56,9 @@ Telegram API (polling)
 - `ITelegramBotCommandHandler` — command contract: `CommandName`, `CommandText`, `SupportedUpdateTypes`, `SupportedMessageTypes`, `ProcessCommandAsync()`, optional `TryGetLockKey()` for exclusive per-key execution.
 - `ITelegramBotCommandState` / `TelegramBotCommandStateBase` — multi-step conversational state stored in `TelegramBotCommandStateCache` (IMemoryCache, 1-hour expiry).
 - `TelegramBotCommandProcessingResult` — record returned by handlers; `WithoutState()` or `WithSimpleState()`.
-- `TelegramBotOptions` — configuration record with self-validation (`ApiToken`, `Password`, `AllowedChatIds`, `MaxDegreeOfParallelism`, `QueuePersistenceFilePath`).
+- `TelegramBotOptions` — configuration record with self-validation (`ApiToken`, `Password`, `AllowedChatIds`, `MaxDegreeOfParallelism`, `QueuePersistenceFilePath`). Token *format* is not validated here — `AddTelegramBotInfrastructure` builds `TelegramBotClientOptions` eagerly so a malformed token throws at registration time without duplicating Telegram.Bot's undocumented format rule.
+- `TelegramBotMessageTypes.TextOrRich` — shared `SupportedMessageTypes` set covering `MessageType.Text` and `MessageType.RichMessage`.
+- `TelegramBotExtensions.GetMessageText()` / `GetRichBlocks()` — read message text with a rich-message fallback (rich messages leave `Message.Text` null), or reach the structured blocks.
 
 **DI registration:**
 ```csharp

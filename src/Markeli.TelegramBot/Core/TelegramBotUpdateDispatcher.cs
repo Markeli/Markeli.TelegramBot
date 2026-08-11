@@ -1,4 +1,9 @@
+using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
@@ -210,13 +215,13 @@ public class TelegramBotUpdateDispatcher : IHostedService
 				cancellationToken);
 	}
 
-	private ITelegramBotCommandHandler? ResolveCommand(Update update, long chatId)
+	internal ITelegramBotCommandHandler? ResolveCommand(Update update, long chatId)
 	{
 		var message = update.Message;
 		if (message == null)
 			return null;
 
-		var messageText = message.Text?.Trim() ?? message.Caption?.Trim();
+		var messageText = update.GetMessageText()?.Trim();
 		if (String.IsNullOrWhiteSpace(messageText) && message.Type != MessageType.Document)
 			return null;
 
@@ -251,7 +256,7 @@ public class TelegramBotUpdateDispatcher : IHostedService
 		Update update,
 		CancellationToken cancellationToken)
 	{
-		var messageText = update.Message?.Text?.Trim() ?? update.Message?.Caption?.Trim() ?? "";
+		var messageText = update.GetMessageText()?.Trim() ?? "";
 
 		_logger.LogDebug(
 			"Unsupported command in chat ChatId={ChatId}. Command - \"{Command}\"",
@@ -260,7 +265,7 @@ public class TelegramBotUpdateDispatcher : IHostedService
 
 		try
 		{
-			await _botClient.SendTextMessageAsync(
+			await _botClient.SendMessage(
 				chatId,
 				"Unsupported command. I can process only limited list of commands. Please, click on \"Menu\" to list all of them.",
 				cancellationToken: cancellationToken);

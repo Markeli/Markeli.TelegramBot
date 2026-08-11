@@ -67,7 +67,7 @@ public class TelegramBotExtensionsTests
 	{
 		var botClient = new Mock<ITelegramBotClient>();
 		botClient
-			.Setup(x => x.MakeRequestAsync(
+			.Setup(x => x.SendRequest(
 				It.IsAny<DeleteMessageRequest>(),
 				It.IsAny<CancellationToken>()))
 			.ReturnsAsync(true);
@@ -81,7 +81,7 @@ public class TelegramBotExtensionsTests
 			logger.Object);
 
 		botClient.Verify(
-			x => x.MakeRequestAsync(
+			x => x.SendRequest(
 				It.IsAny<DeleteMessageRequest>(),
 				It.IsAny<CancellationToken>()),
 			Times.Exactly(3));
@@ -100,7 +100,7 @@ public class TelegramBotExtensionsTests
 			logger.Object);
 
 		botClient.Verify(
-			x => x.MakeRequestAsync(
+			x => x.SendRequest(
 				It.IsAny<DeleteMessageRequest>(),
 				It.IsAny<CancellationToken>()),
 			Times.Never);
@@ -112,7 +112,7 @@ public class TelegramBotExtensionsTests
 		var botClient = new Mock<ITelegramBotClient>();
 		var callCount = 0;
 		botClient
-			.Setup(x => x.MakeRequestAsync(
+			.Setup(x => x.SendRequest(
 				It.IsAny<DeleteMessageRequest>(),
 				It.IsAny<CancellationToken>()))
 			.Returns<DeleteMessageRequest, CancellationToken>((req, ct) =>
@@ -132,7 +132,7 @@ public class TelegramBotExtensionsTests
 			logger.Object);
 
 		botClient.Verify(
-			x => x.MakeRequestAsync(
+			x => x.SendRequest(
 				It.IsAny<DeleteMessageRequest>(),
 				It.IsAny<CancellationToken>()),
 			Times.Exactly(2));

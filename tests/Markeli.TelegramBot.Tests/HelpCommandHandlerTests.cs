@@ -53,7 +53,7 @@ public class HelpCommandHandlerTests
 		using var _ = provider;
 
 		var botClient = new Mock<ITelegramBotClient>();
-		botClient.Setup(c => c.MakeRequestAsync(
+		botClient.Setup(c => c.SendRequest(
 				It.IsAny<Telegram.Bot.Requests.SendMessageRequest>(),
 				It.IsAny<CancellationToken>()))
 			.ReturnsAsync(new Message { Chat = new Chat { Id = 1 } });
@@ -64,7 +64,7 @@ public class HelpCommandHandlerTests
 			botClient.Object, update, null, CancellationToken.None);
 
 		Assert.Null(result.State);
-		botClient.Verify(c => c.MakeRequestAsync(
+		botClient.Verify(c => c.SendRequest(
 			It.Is<Telegram.Bot.Requests.SendMessageRequest>(r =>
 				r.Text.Contains("/ping") && r.Text.Contains("/greet")),
 			It.IsAny<CancellationToken>()), Times.Once);
@@ -101,7 +101,7 @@ public class HelpCommandHandlerTests
 		using var _ = provider;
 
 		var botClient = new Mock<ITelegramBotClient>();
-		botClient.Setup(c => c.MakeRequestAsync(
+		botClient.Setup(c => c.SendRequest(
 				It.IsAny<Telegram.Bot.Requests.SendMessageRequest>(),
 				It.IsAny<CancellationToken>()))
 			.ReturnsAsync(new Message { Chat = new Chat { Id = 1 } });
